@@ -26,7 +26,7 @@ public class RoomBookingFacadeImpl implements RoomBookingFacade {
             BookingContract updatedContract = reservationManager.reserveRoom(contract);
 
             if (BookingStatus.UNAVAILABLE_ROOM.equals(updatedContract.getStatus())) {;
-                refundManager.startRefundProcess(updatedContract);
+                refundManager.startRefundingProcess(updatedContract);
                 notificationManager.notifyCustomerOfUnavailableRoom(updatedContract);
             } else {
                 invoiceManager.generateInvoice(updatedContract);
@@ -51,11 +51,12 @@ public class RoomBookingFacadeImpl implements RoomBookingFacade {
         try {
             BookingContract updatedContract = reservationManager.cancelReservation(contract);
 
-            refundManager.startRefundProcess(updatedContract);
+            refundManager.startRefundingProcess(updatedContract);
             invoiceManager.cancelInvoice(updatedContract);
             notificationManager.notifyCustomerOfSuccessfulBookingCancellation(updatedContract);
 
             return updatedContract;
+
         } catch (ReservationCancellationFailedException | InvoiceCancellationFailedException |
                  RefundProcessingFailedException e) {
             LogManager.error(e.getMessage());

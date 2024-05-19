@@ -13,7 +13,7 @@ import java.util.Random;
 public class RefundMangerImpl implements RefundManager {
 
     @Override
-    public void startRefundProcess(BookingContract contract) throws RefundProcessingFailedException {
+    public void startRefundingProcess(BookingContract contract) throws RefundProcessingFailedException {
         if (refundFailed()) {
             final String formattedMessage =
                     String.format("Refunding workflow failed for booking contract %s", contract);

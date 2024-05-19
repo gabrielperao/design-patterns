@@ -9,5 +9,5 @@ public interface RefundManager {
      *
      * @param contract BookingContract with info
      */
-    void startRefundProcess(BookingContract contract) throws RefundProcessingFailedException;
+    void startRefundingProcess(BookingContract contract) throws RefundProcessingFailedException;
 }
