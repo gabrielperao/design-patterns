@@ -6,12 +6,14 @@ import com.example.designpatterns.exception.RoomNotFoundException;
 import com.example.designpatterns.exception.UnavailableRoomException;
 import com.example.designpatterns.model.BookingContract;
 import com.example.designpatterns.model.BookingStatus;
+import com.google.inject.Singleton;
 import lombok.NoArgsConstructor;
 
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
+@Singleton
 @NoArgsConstructor
 public class ReservationManagerImpl implements ReservationManager {
 
@@ -24,12 +26,14 @@ public class ReservationManagerImpl implements ReservationManager {
             String roomId = roomIdOptional.get();
             contract.updateRoomId(roomId);
             contract.updateStatus(BookingStatus.RESERVED);
-            return contract;
         } else {
             final String formattedMessage =
                     String.format("No room available for booking contract %s", contract);
-            throw new UnavailableRoomException(formattedMessage);
+            LogManager.warn(formattedMessage);
+
+            contract.updateStatus(BookingStatus.UNAVAILABLE_ROOM);
         }
+        return contract;
     }
 
     @Override
@@ -63,7 +67,7 @@ public class ReservationManagerImpl implements ReservationManager {
 
     private void simulateReservationCancellation(final BookingContract contract) throws RoomNotFoundException {
         // Extra logic to cancel reservation, not applicable for this project
-        final boolean couldFindRoomByID = (new Random()).nextBoolean();
+        final boolean couldFindRoomByID = ((new Random()).nextBoolean() && contract.getRoomId() != null);
         if (!couldFindRoomByID) {
             final String formattedMessage = String.format("Could not find room with roomId %s", contract.getRoomId());
             throw new RoomNotFoundException(formattedMessage);

@@ -1,7 +1,7 @@
 package com.example.designpatterns.exception;
 
 public class TerminalException extends RuntimeException {
-    public TerminalException(Throwable cause) {
-        this.initCause(cause);
+    public TerminalException(String message) {
+        super(message);
     }
 }

@@ -1,14 +1,18 @@
 package com.example.designpatterns.business.facade.impl;
 
 import com.example.designpatterns.business.facade.RoomBookingFacade;
+import com.example.designpatterns.business.manager.InvoiceManager;
+import com.example.designpatterns.business.manager.NotificationManager;
+import com.example.designpatterns.business.manager.RefundManager;
 import com.example.designpatterns.business.manager.ReservationManager;
 import com.example.designpatterns.business.manager.impl.LogManager;
 import com.example.designpatterns.exception.*;
 import com.example.designpatterns.model.BookingContract;
 import com.example.designpatterns.model.BookingStatus;
-import lombok.RequiredArgsConstructor;
+import com.google.inject.Inject;
+import lombok.AllArgsConstructor;
 
-@RequiredArgsConstructor
+@AllArgsConstructor(onConstructor_ = @__(@Inject))
 public class RoomBookingFacadeImpl implements RoomBookingFacade {
 
     private final NotificationManager notificationManager;
@@ -21,25 +25,24 @@ public class RoomBookingFacadeImpl implements RoomBookingFacade {
         try {
             BookingContract updatedContract = reservationManager.reserveRoom(contract);
 
-            // TODO: InvoiceManager.generateInvoice(updatedContract)
-            // TODO: send notification
+            if (BookingStatus.UNAVAILABLE_ROOM.equals(updatedContract.getStatus())) {;
+                refundManager.startRefundProcess(updatedContract);
+                notificationManager.notifyCustomerOfUnavailableRoom(updatedContract);
+            } else {
+                invoiceManager.generateInvoice(updatedContract);
+                notificationManager.notifyCustomerOfSuccessfulRoomBooking(updatedContract);
+            }
 
             return updatedContract;
-        } catch (UnavailableRoomException e) {
-            LogManager.warn(e.getMessage());
 
-            // TODO: send notification (unavailable_room)
-            // TODO: RefundManager.processRefund()
-            contract.updateStatus(BookingStatus.UNAVAILABLE_ROOM);
-
-            throw new TerminalException(e);
         } catch (InvoiceGenerationFailedException | RefundProcessingFailedException e) {
             LogManager.error(e.getMessage());
 
-            // TODO: send notification
-            // Extra logic to send to DLQ? Not applicable for this project
+            notificationManager.notifyCustomerOfFailedRoomBooking(contract);
 
-            throw new TerminalException(e);
+            String formattedMessage =
+                String.format("Could not complete room booking workflow for contract %s: %s", contract, e.getMessage());
+            throw new TerminalException(formattedMessage);
         }
     }
 
@@ -48,17 +51,21 @@ public class RoomBookingFacadeImpl implements RoomBookingFacade {
         try {
             BookingContract updatedContract = reservationManager.cancelReservation(contract);
 
-            // TODO: RefundManager.processRefund()
-            // TODO: InvoiceManager.cancelInvoice()
-            // TODO: send notification
+            refundManager.startRefundProcess(updatedContract);
+            invoiceManager.cancelInvoice(updatedContract);
+            notificationManager.notifyCustomerOfSuccessfulBookingCancellation(updatedContract);
 
             return updatedContract;
-        } catch (ReservationCancellationFailedException | InvoiceCancellationFailedException e) {
+        } catch (ReservationCancellationFailedException | InvoiceCancellationFailedException |
+                 RefundProcessingFailedException e) {
             LogManager.error(e.getMessage());
 
-            // send notification
+            notificationManager.notifyCustomerOfFailedBookingCancellation(contract);
 
-            throw new TerminalException(e);
+            String formattedMessage =
+                String.format("Could not complete reservation cancellation workflow for contract %s: %s",
+                    contract, e.getMessage());
+            throw new TerminalException(formattedMessage);
         }
     }
 }

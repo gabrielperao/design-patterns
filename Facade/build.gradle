@@ -1,5 +1,12 @@
 plugins {
     id 'java'
+    id 'application'
+}
+
+sourceSets.main.java.srcDirs = ['src']
+
+application {
+    mainClassName = 'com.example.designpatterns.Facade'
 }
 
 group = 'com.example.designpatterns'
@@ -10,8 +17,16 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.32'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    implementation 'com.google.inject:guice:5.1.0'
 }
 
 test {

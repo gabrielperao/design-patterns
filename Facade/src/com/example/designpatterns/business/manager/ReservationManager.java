@@ -1,19 +1,20 @@
 package com.example.designpatterns.business.manager;
 
 import com.example.designpatterns.exception.ReservationCancellationFailedException;
+import com.example.designpatterns.exception.UnavailableRoomException;
 import com.example.designpatterns.model.BookingContract;
 
 public interface ReservationManager {
 
     /**
-     * Tries to reserve a room based on booking contract info
+     * Reserves a room based on booking contract info
      *
      * @param contract BookingContract with info
      */
-    BookingContract reserveRoom(BookingContract contract);
+    BookingContract reserveRoom(BookingContract contract) throws UnavailableRoomException;
 
     /**
-     * Tries to cancel a room reservation based on booking contract info
+     * Cancels a room reservation based on booking contract info
      *
      * @param contract BookingContract with info
      */
